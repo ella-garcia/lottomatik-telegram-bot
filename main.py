@@ -6,24 +6,28 @@ import logging
 app = Flask(__name__)
 
 # Bot token from environment variable
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 # Basic logging setup
 logging.basicConfig(level=logging.INFO)
 
 @app.route("/", methods=["POST"])
-def webhook():
-    update = request.get_json(silent=True)
-    if not update:
-        logging.warning("Invalid JSON received")
-        return jsonify({"error": "Invalid JSON"}), 400
+def handle_webhook():
+    try:
+        # Parse the JSON body
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Empty payload"}), 400
 
-    # Handle the incoming message
-    handle_update(update)
+        # Log the received data for debugging
+        print("Received data:", data)
 
-    return jsonify({"status": "ok"}), 200
-
+        # Respond to Telegram or the client
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        print("Error:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 def handle_update(update):
     """Processes the Telegram update."""
